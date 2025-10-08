@@ -10,142 +10,98 @@
         margin: 20px;
         background-color: #f5f5f5;
     }
-
     h1 {
-        color: #1E90FF; /* Azul */
-        text-align: center;
+        color: #333;
     }
-
-    .container {
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .historico {
-        display: flex;
-        flex-direction: column-reverse; /* Mais recente em cima */
-        margin-bottom: 15px;
-    }
-
-    .nota-item {
+    .placa {
+        margin-top: 20px;
+        padding: 15px;
         background-color: #fff;
-        padding: 12px;
         border-radius: 8px;
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+    textarea {
+        width: 100%;
+        height: 100px;
+        padding: 8px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        resize: vertical;
+    }
+    button {
+        margin-top: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    .historico {
+        margin-top: 20px;
+    }
+    .nota-item {
+        background-color: #eee;
+        padding: 10px;
+        border-radius: 6px;
         margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        word-break: break-word;
-        transition: transform 0.2s;
     }
-
-    .nota-item.recente {
-        font-size: 1.1em;
-        background-color: #e0f0ff; /* Destaque para mais recente */
-        transform: scale(1.02);
-    }
-
     .nota-text {
         flex-grow: 1;
         margin-right: 10px;
+        word-break: break-word;
     }
-
     .nota-buttons button {
         margin-left: 5px;
-        padding: 5px 8px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        color: white;
-    }
-
-    .nota-buttons button.edit {
         background-color: #2196F3;
     }
-
     .nota-buttons button.delete {
         background-color: #f44336;
     }
-
-    .input-area {
-        display: flex;
-        background-color: #fff;
-        border-radius: 50px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.1);
-        padding: 5px 10px;
-        align-items: center;
-    }
-
-    .input-area input {
-        flex-grow: 1;
-        border: none;
-        padding: 10px;
-        border-radius: 50px;
-        outline: none;
-        font-size: 14px;
-    }
-
-    .input-area button {
-        background-color: #1E90FF;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        margin-left: 10px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
-
-    .input-area button:hover {
-        background-color: #187bcd;
-    }
-
 </style>
 </head>
 <body>
 
 <h1>OBS</h1>
 
-<div class="container">
+<div class="placa">
+    <label for="nota">Nova Observação:</label>
+    <textarea id="nota" placeholder="Digite sua observação..."></textarea>
+    <button id="enviar">Enviar</button>
+</div>
 
-    <div class="historico" id="historico">
-        <!-- Notas vão aparecer aqui -->
-    </div>
-
-    <div class="input-area">
-        <input type="text" id="nota" placeholder="Digite sua observação...">
-        <button id="enviar">&#10148;</button> <!-- Setinha -->
-    </div>
-
+<div class="historico" id="historico">
+    <!-- As notas vão aparecer aqui -->
 </div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
-const placaRaw = params.get('placa') || "geral";
-// Substitui caracteres especiais por "_" para não quebrar localStorage
-const placa = placaRaw.replace(/[^a-zA-Z0-9_-]/g, "_");
+const placa = params.get('placa') || "geral";
 
-const input = document.getElementById('nota');
+const textarea = document.getElementById('nota');
 const enviarBtn = document.getElementById('enviar');
 const historicoDiv = document.getElementById('historico');
 
-// Função para carregar notas
+// Função para carregar notas do localStorage
 function carregarNotas() {
     const notas = JSON.parse(localStorage.getItem('notas-' + placa) || '[]');
     historicoDiv.innerHTML = '';
-
-    // Cria uma cópia do array invertida para mostrar mais recente em cima
-    const notasInvertidas = notas.slice().reverse();
-
-    notasInvertidas.forEach((nota, index) => {
+    notas.forEach((nota, index) => {
         const div = document.createElement('div');
         div.className = 'nota-item';
-        if(index === 0) div.classList.add('recente'); // Mais recente maior
         div.innerHTML = `
             <div class="nota-text">${nota}</div>
             <div class="nota-buttons">
@@ -153,50 +109,36 @@ function carregarNotas() {
                 <button class="delete">Excluir</button>
             </div>
         `;
-
-        // O índice correto na array original
-        const originalIndex = notas.length - 1 - index;
-
-        // Editar
+        // Editar nota
         div.querySelector('.edit').addEventListener('click', () => {
             const novoTexto = prompt('Edite a nota:', nota);
-            if(novoTexto !== null) {
-                notas[originalIndex] = novoTexto;
+            if (novoTexto !== null) {
+                notas[index] = novoTexto;
                 localStorage.setItem('notas-' + placa, JSON.stringify(notas));
                 carregarNotas();
             }
         });
-
-        // Excluir
+        // Excluir nota
         div.querySelector('.delete').addEventListener('click', () => {
-            if(confirm('Deseja realmente excluir esta nota?')) {
-                notas.splice(originalIndex, 1);
+            if (confirm('Deseja realmente excluir esta nota?')) {
+                notas.splice(index, 1);
                 localStorage.setItem('notas-' + placa, JSON.stringify(notas));
                 carregarNotas();
             }
         });
-
         historicoDiv.appendChild(div);
     });
 }
 
 // Enviar nova nota
-function enviarNota() {
-    const texto = input.value.trim();
-    if(texto === '') return;
+enviarBtn.addEventListener('click', () => {
+    const texto = textarea.value.trim();
+    if (texto === '') return;
     const notas = JSON.parse(localStorage.getItem('notas-' + placa) || '[]');
     notas.push(texto);
     localStorage.setItem('notas-' + placa, JSON.stringify(notas));
-    input.value = '';
+    textarea.value = '';
     carregarNotas();
-}
-
-// Botão enviar
-enviarBtn.addEventListener('click', enviarNota);
-
-// Enviar ao apertar Enter
-input.addEventListener('keypress', (e) => {
-    if(e.key === 'Enter') enviarNota();
 });
 
 // Inicializar
