@@ -1,167 +1,57 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Bloco de Notas por Placa</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f4f6fb;
-    color: #111827;
-    margin: 0;
-    padding: 20px;
-  }
-  .container {
-    max-width: 900px;
-    margin: auto;
-    background: #fff;
-    padding: 20px 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  h1 { font-size: 20px; margin-top: 0; }
-  .meta { color: #6b7280; font-size: 13px; margin-top: 4px; }
-  textarea {
-    width: 100%;
-    min-height: 80px;
-    padding: 8px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    resize: vertical;
-  }
-  button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 14px;
-    cursor: pointer;
-  }
-  button:hover { background: #1d4ed8; }
-  .note {
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 10px;
-    background: #fafafa;
-  }
-  .note-actions { display: flex; gap: 8px; margin-top: 6px; }
-  .note-actions button {
-    background: #6b7280;
-    padding: 4px 8px;
-    font-size: 12px;
-  }
-  .note-actions button.delete { background: #dc2626; }
-  .back {
-    display: inline-block;
-    margin-bottom: 12px;
-    color: #2563eb;
-    text-decoration: none;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .placa {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 5px;
+            padding: 5px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <a href="https://sites.google.com/view/consultaporplaca" class="back">? Voltar ao painel geral</a>
-  <h1 id="placaTitle">Bloco de Notas</h1>
-  <div id="notesList"></div>
-  <h3>Adicionar nova anotação</h3>
-  <textarea id="newNote" placeholder="Escreva aqui sua observação..."></textarea><br>
-  <button id="addBtn">Adicionar</button>
-</div>
 
-<script>
-(function(){
-  const urlParams = new URLSearchParams(window.location.search);
-  const placa = (urlParams.get("placa") || "").toUpperCase().trim();
+    <h1>OBS</h1>
 
-  const titleEl = document.getElementById("placaTitle");
-  const listEl = document.getElementById("notesList");
-  const noteInput = document.getElementById("newNote");
-  const addBtn = document.getElementById("addBtn");
+    <div class="placa">
+        <label for="nota">ObservaÃ§Ãµes:</label>
+        <textarea id="nota" placeholder="Digite aqui suas observaÃ§Ãµes..."></textarea>
+    </div>
 
-  if(!placa){
-    titleEl.textContent = "?? Nenhuma placa informada na URL.";
-    addBtn.disabled = true;
-    noteInput.disabled = true;
-    return;
-  }
-
-  titleEl.textContent = "Placa: " + placa;
-  const STORAGE_KEY = "notas_" + placa.replace(/[^A-Z0-9]/g, "_");
-
-  function loadNotes(){
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch(e){ return []; }
-  }
-
-  function saveNotes(notes){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-  }
-
-  function render(){
-    const notes = loadNotes();
-    notes.sort((a,b)=> a.text.localeCompare(b.text, "pt", {sensitivity:"base"}));
-    listEl.innerHTML = "";
-    if(notes.length===0){
-      listEl.innerHTML = `<p style="color:#6b7280;">Nenhuma anotação ainda para esta placa.</p>`;
-      return;
-    }
-    for(const note of notes){
-      const div = document.createElement("div");
-      div.className = "note";
-      div.innerHTML = `
-        <div class="text">${note.text}</div>
-        <div class="meta">Enviado em: ${new Date(note.createdAt).toLocaleString("pt-BR",{hour12:false})}
-        ${note.editedAt ? " • Editado em: "+new Date(note.editedAt).toLocaleString("pt-BR",{hour12:false}) : ""}</div>
-      `;
-      const actions = document.createElement("div");
-      actions.className = "note-actions";
-
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Editar";
-      editBtn.onclick = () => {
-        const novoTexto = prompt("Editar anotação:", note.text);
-        if(novoTexto !== null && novoTexto.trim() !== ""){
-          note.text = novoTexto.trim();
-          note.editedAt = new Date().toISOString();
-          saveNotes(notes);
-          render();
+    <script>
+        // CÃ³digo para capturar a placa da URL
+        const params = new URLSearchParams(window.location.search);
+        const placa = params.get('placa');
+        if (placa) {
+            const label = document.querySelector('label');
+            label.textContent = `ObservaÃ§Ãµes para a placa ${placa}:`;
         }
-      };
+    </script>
 
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "Excluir";
-      delBtn.className = "delete";
-      delBtn.onclick = () => {
-        if(confirm("Excluir esta anotação?")){
-          const index = notes.indexOf(note);
-          notes.splice(index,1);
-          saveNotes(notes);
-          render();
-        }
-      };
-
-      actions.appendChild(editBtn);
-      actions.appendChild(delBtn);
-      div.appendChild(actions);
-      listEl.appendChild(div);
-    }
-  }
-
-  addBtn.onclick = () => {
-    const text = noteInput.value.trim();
-    if(!text){ alert("Digite uma anotação."); return; }
-    const notes = loadNotes();
-    notes.push({ text, createdAt: new Date().toISOString() });
-    saveNotes(notes);
-    noteInput.value = "";
-    render();
-  };
-
-  render();
-})();
-</script>
 </body>
 </html>
