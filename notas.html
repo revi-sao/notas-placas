@@ -126,19 +126,23 @@
 
 <script>
 const params = new URLSearchParams(window.location.search);
-const placa = params.get('placa') || "geral";
+const placaRaw = params.get('placa') || "geral";
+// Substitui caracteres especiais por "_" para não quebrar localStorage
+const placa = placaRaw.replace(/[^a-zA-Z0-9_-]/g, "_");
 
 const input = document.getElementById('nota');
 const enviarBtn = document.getElementById('enviar');
 const historicoDiv = document.getElementById('historico');
 
-// Função para carregar notas do localStorage
+// Função para carregar notas
 function carregarNotas() {
     const notas = JSON.parse(localStorage.getItem('notas-' + placa) || '[]');
     historicoDiv.innerHTML = '';
 
-    // Mostrar do mais recente para o mais antigo
-    notas.slice().reverse().forEach((nota, index) => {
+    // Cria uma cópia do array invertida para mostrar mais recente em cima
+    const notasInvertidas = notas.slice().reverse();
+
+    notasInvertidas.forEach((nota, index) => {
         const div = document.createElement('div');
         div.className = 'nota-item';
         if(index === 0) div.classList.add('recente'); // Mais recente maior
@@ -150,11 +154,14 @@ function carregarNotas() {
             </div>
         `;
 
+        // O índice correto na array original
+        const originalIndex = notas.length - 1 - index;
+
         // Editar
         div.querySelector('.edit').addEventListener('click', () => {
             const novoTexto = prompt('Edite a nota:', nota);
             if(novoTexto !== null) {
-                notas[notas.length - 1 - index] = novoTexto; // Corrige índice invertido
+                notas[originalIndex] = novoTexto;
                 localStorage.setItem('notas-' + placa, JSON.stringify(notas));
                 carregarNotas();
             }
@@ -163,7 +170,7 @@ function carregarNotas() {
         // Excluir
         div.querySelector('.delete').addEventListener('click', () => {
             if(confirm('Deseja realmente excluir esta nota?')) {
-                notas.splice(notas.length - 1 - index, 1);
+                notas.splice(originalIndex, 1);
                 localStorage.setItem('notas-' + placa, JSON.stringify(notas));
                 carregarNotas();
             }
